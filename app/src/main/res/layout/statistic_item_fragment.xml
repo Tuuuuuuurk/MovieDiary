@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="5dp"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/orange_item">
+
+        <TextView
+            android:id="@+id/statisticNameView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:textSize="20dp"
+            android:text="Название"
+            android:layout_marginLeft="5dp"/>
+
+        <TextView
+            android:id="@+id/statisticRatingView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="4"
+            android:textSize="30dp"
+            android:textStyle="bold"
+            android:textColor="@color/dark_green"
+            android:gravity="center"
+            android:background="@drawable/rating_circle"
+            android:text="10" />
+
+    </LinearLayout>
+
+</RelativeLayout>

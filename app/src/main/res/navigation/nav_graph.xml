@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/filmsListFragment">
+
+    <fragment
+        android:id="@+id/filmsListFragment"
+        android:name="com.example.moviediary.ui.filmslist.FilmsListFragment"
+        android:label="Кино-дневник"
+        tools:layout="@layout/films_list_fragment" >
+        <action
+            android:id="@+id/action_filmsListFragment_to_addEditFilmFragment"
+            app:destination="@id/AddEditFilmFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/AddEditFilmFragment"
+        android:name="com.example.moviediary.ui.addeditfilm.AddEditFilmFragment"
+        android:label="{fragment_title}"
+        tools:layout="@layout/film_editing_view">
+
+        <argument
+            android:name="film"
+            android:defaultValue="@null"
+            app:argType="com.example.moviediary.data.Film"
+            app:nullable="true" />
+        <argument
+            android:name="producers"
+            app:argType="com.example.moviediary.data.Producer[]"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="fragment_title"
+            app:argType="string" />
+
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/statisticFragment"
+        android:name="com.example.moviediary.ui.statistic.StatisticFragment"
+        android:label="Статистика"
+        tools:layout="@layout/statistic_fragment" />
+
+</navigation>

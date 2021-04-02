@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/filmsListFragment"
+        android:icon="@drawable/home"
+        android:title="Список">
+    </item>
+    <item
+        android:id="@+id/statisticFragment"
+        android:icon="@drawable/star_half_statistic"
+        android:title="Статистика">
+    </item>
+</menu>

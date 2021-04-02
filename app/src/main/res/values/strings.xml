@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Кино-дневник</string>
+    <string name="film_name">Название</string>
+    <string name="film_genre">жанр</string>
+    <string name="film_status">статус</string>
+    <string name="sort_menu">Сортировка</string>
+    <string name="action_search">Поиск</string>
+    <string name="action_sort_by_name">Сортировать по имени</string>
+    <string name="action_sort_by_year">Сортировать по году</string>
+    <string name="action_sort_by_genre">Сортировать по жанру</string>
+    <string name="action_sort_by_producer">Сортировать по режисеру</string>
+
+    <string-array name="status">
+        <item>Буду смотреть</item>
+        <item>Просмотрено</item>
+    </string-array>
+</resources>
