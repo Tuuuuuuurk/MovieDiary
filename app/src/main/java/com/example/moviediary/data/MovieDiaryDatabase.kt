@@ -2,11 +2,13 @@ package com.example.moviediary.data
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import coil.ImageLoader
@@ -15,10 +17,12 @@ import coil.request.SuccessResult
 import com.example.moviediary.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Provider
+import kotlin.math.sqrt
 
 @Database(entities = [Film::class, Producer::class], version = 1)
 @TypeConverters(Converters::class)
@@ -30,7 +34,7 @@ abstract class MovieDiaryDatabase : RoomDatabase() {
     class Callback @Inject constructor(
         private val database: Provider<MovieDiaryDatabase>,
         @ApplicationScope private val applicationScope: CoroutineScope,
-        private val appContext: Provider<Context>
+        private val appContext: Provider<Context>,
     ) : RoomDatabase.Callback() {
 
         @RequiresApi(Build.VERSION_CODES.O)
@@ -105,14 +109,36 @@ abstract class MovieDiaryDatabase : RoomDatabase() {
             }
         }
 
-        suspend fun getBitmap(url: String, context: Context): Bitmap {
+        private suspend fun getBitmap(url: String, context: Context): Bitmap {
             val loading = ImageLoader(context)
             val request = ImageRequest.Builder(context)
                 .data(url)
                 .build()
 
             val result = (loading.execute(request) as SuccessResult).drawable
-            return (result as BitmapDrawable).bitmap
+            return resizeImage((result as BitmapDrawable).bitmap)
+        }
+
+        private fun fromBitmap(bitmap: Bitmap?): ByteArray {
+            val outputStream = ByteArrayOutputStream()
+            bitmap?.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            return outputStream.toByteArray()
+        }
+
+        private fun toBitmap(byteArray: ByteArray?): Bitmap? {
+            return if (byteArray != null)
+                BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            else
+                null
+        }
+
+        private fun resizeImage(inputImage: Bitmap): Bitmap {
+            var imageBytes = fromBitmap(inputImage)
+            val compressionRatio = sqrt(100000.0 / imageBytes.size)
+            val bitmap = toBitmap(imageBytes)!!
+            val resized = Bitmap.createScaledBitmap(bitmap, (bitmap.width * compressionRatio).toInt(), (bitmap.height * compressionRatio).toInt(), true)
+            imageBytes = fromBitmap(resized)
+            return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
         }
     }
 }

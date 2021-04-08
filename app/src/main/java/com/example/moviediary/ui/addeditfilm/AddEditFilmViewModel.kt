@@ -14,34 +14,26 @@ import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
-import com.example.moviediary.data.Film
-import com.example.moviediary.data.FilmDao
-import com.example.moviediary.data.Producer
-import com.example.moviediary.data.ProducerDao
+import com.example.moviediary.data.*
 import com.example.moviediary.ui.ADD_FILM_RESULT_OK
 import com.example.moviediary.ui.EDIT_FILM_RESULT_OK
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import java.util.*
-import kotlin.concurrent.timerTask
 import kotlin.math.abs
-import java.util.Timer as Timer1
+
 
 class AddEditFilmViewModel @ViewModelInject constructor(
         private val filmDao: FilmDao,
         private val producerDao: ProducerDao,
         @Assisted private val state: SavedStateHandle,
-        private val application: Application
+        private val converter: Converters
 ) : ViewModel() {
 
     val film = state.get<Film>("film")
     var producers = state.get<Array<Producer>>("producers")
 
     var filmProducers = getFilmProducersNames()
-
-    var bitmapPic: Bitmap? = null
-
 
     var dateLong: Long = film?.year_of_issue ?: 0
     var dateYear: Int = film?.yearOfIssueFormattedAsYear?.toInt() ?: 2021
@@ -63,7 +55,7 @@ class AddEditFilmViewModel @ViewModelInject constructor(
             field = value
             state.set("filmDate", value)
         }
-    var filmPoster = state.get<Bitmap>("filmPoster") ?: film?.poster ?: bitmapPic
+    var filmPoster = state.get<Bitmap>("filmPoster") ?: film?.poster
         set(value) {
             field = value
             state.set("filmPoster", value)
@@ -88,14 +80,6 @@ class AddEditFilmViewModel @ViewModelInject constructor(
             names.add(it.name)
         }
         return names
-    }
-
-    private fun getBitmapNullPicture(): Bitmap? {
-        var bitmap: Bitmap? = null
-        viewModelScope.launch {
-            bitmap = getBitmap("", application.baseContext)
-        }
-        return bitmap
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -158,6 +142,11 @@ class AddEditFilmViewModel @ViewModelInject constructor(
         addEditFilmEventChannel.send(AddEditFilmEvent.ChangeDateView)
     }
 
+    fun onChoosePosterFromGallery(poster: Bitmap) = viewModelScope.launch {
+        filmPoster = converter.resizeImage(poster)
+        addEditFilmEventChannel.send(AddEditFilmEvent.UpdatePosterView)
+    }
+
     private fun createProducer(producer: Producer) = viewModelScope.launch {
         producerDao.insert(producer)
     }
@@ -185,17 +174,6 @@ class AddEditFilmViewModel @ViewModelInject constructor(
         data class NavigateBackWithResult(val result: Int) : AddEditFilmEvent()
         object ChangeDateView : AddEditFilmEvent()
         object UpdateProducersListView : AddEditFilmEvent()
+        object UpdatePosterView : AddEditFilmEvent()
     }
-
-    suspend fun getBitmap(url: String, context: Context): Bitmap {
-        val loading = ImageLoader(context)
-        val request = ImageRequest.Builder(context)
-                .data(url)
-                .build()
-
-        val result = (loading.execute(request) as SuccessResult).drawable
-        return (result as BitmapDrawable).bitmap
-    }
-
-
 }

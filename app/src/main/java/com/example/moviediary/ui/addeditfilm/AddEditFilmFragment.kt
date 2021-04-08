@@ -5,16 +5,13 @@ import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.drawable.LayerDrawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
@@ -29,7 +26,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import com.example.moviediary.R
 import com.example.moviediary.databinding.FilmEditingViewBinding
-import com.example.moviediary.ui.GalleryActivity
 import com.example.moviediary.ui.PERMISSION_CODE
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -45,8 +41,6 @@ class AddEditFilmFragment : Fragment(R.layout.film_editing_view) {
     private val addEditFilmViewModel: AddEditFilmViewModel by viewModels()
 
     private val producersAdapter: ProducersListAdapter = ProducersListAdapter()
-
-    private var galleryBitmap: Bitmap? = null
 
     private val calendar = Calendar.getInstance()
 
@@ -94,22 +88,20 @@ class AddEditFilmFragment : Fragment(R.layout.film_editing_view) {
             }
 
             addEditFilmImageView.setOnClickListener {
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     if (context?.let { it1 -> ContextCompat.checkSelfPermission(it1.applicationContext, Manifest.permission.READ_EXTERNAL_STORAGE) } ==
-                            PackageManager.PERMISSION_DENIED){
-                        val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE);
-                        requestPermissions(permissions, PERMISSION_CODE);
+                            PackageManager.PERMISSION_DENIED) {
+                        val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        requestPermissions(permissions, PERMISSION_CODE)
+                        if (context?.let { it1 -> ContextCompat.checkSelfPermission(it1.applicationContext, Manifest.permission.READ_EXTERNAL_STORAGE) } !=
+                                PackageManager.PERMISSION_DENIED)
+                            openGalleryForImage()
                     }
                     else
                         openGalleryForImage()
                 }
                 else
                     openGalleryForImage()
-
-
-                if (galleryBitmap != null)
-                    addEditFilmImageView.load(galleryBitmap)
             }
 
             spinnerView.onItemSelectedListener = object : OnItemSelectedListener {
@@ -161,11 +153,13 @@ class AddEditFilmFragment : Fragment(R.layout.film_editing_view) {
                         findNavController().popBackStack()
                     }
                     is AddEditFilmViewModel.AddEditFilmEvent.ChangeDateView -> {
-                        val textDateView = view.findViewById(R.id.addEditFilmDateView) as TextView
-                        textDateView.text = addEditFilmViewModel.filmDate
+                        binding.addEditFilmDateView.text =  addEditFilmViewModel.filmDate
                     }
                     is AddEditFilmViewModel.AddEditFilmEvent.UpdateProducersListView -> {
                         producersAdapter.notifyDataSetChanged()
+                    }
+                    is AddEditFilmViewModel.AddEditFilmEvent.UpdatePosterView -> {
+                        binding.addEditFilmImageView.load(addEditFilmViewModel.filmPoster)
                     }
                 }
             }
@@ -190,16 +184,17 @@ class AddEditFilmFragment : Fragment(R.layout.film_editing_view) {
     }
 
     private fun openGalleryForImage() {
-        val intent = Intent(requireContext(), GalleryActivity::class.java)
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        intent.type = "image/*"
         resultLauncher.launch(intent)
     }
 
     private val resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
-            galleryBitmap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, data?.extras?.get("bitmapUri") as Uri)
+            val bitmapUri = data?.data
+            if (bitmapUri != null)
+                addEditFilmViewModel.onChoosePosterFromGallery(MediaStore.Images.Media.getBitmap(requireContext().contentResolver, bitmapUri))
         }
     }
-
-    override fun onSaveInstanceState(outState: Bundle) {}
 }

@@ -24,6 +24,8 @@ class FilmsListViewModel @ViewModelInject constructor(
 
     private val preferencesFlow = preferencesManager.preferencesFlow
 
+    val sortOrder = preferencesFlow.asLiveData()
+
     private val filmsListEventChannel = Channel<FilmsListEvent>()
     val filmsListEvent = filmsListEventChannel.receiveAsFlow()
 

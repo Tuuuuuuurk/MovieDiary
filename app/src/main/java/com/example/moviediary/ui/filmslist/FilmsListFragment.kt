@@ -28,6 +28,7 @@ import com.example.moviediary.util.onQueryTextChanged
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.observeOn
 
 
 @AndroidEntryPoint
@@ -120,6 +121,15 @@ class FilmsListFragment : Fragment(R.layout.films_list_fragment),  OnItemClickLi
         sortMenu.add(menu.findItem(R.id.action_sort_by_year))
         sortMenu.add(menu.findItem(R.id.action_sort_by_producer))
 
+        filmsListViewModel.sortOrder.observe(viewLifecycleOwner) {
+            when (it.sortOrder) {
+                SortOrder.BY_NAME -> resetMenuColors(0)
+                SortOrder.BY_GENRE -> resetMenuColors(1)
+                SortOrder.BY_YEAR -> resetMenuColors(2)
+                SortOrder.BY_PRODUCER -> resetMenuColors(3)
+            }
+        }
+
         val searchItem = menu.findItem(R.id.action_search)
         searchView = searchItem.actionView as SearchView
 
@@ -135,37 +145,33 @@ class FilmsListFragment : Fragment(R.layout.films_list_fragment),  OnItemClickLi
 
     }
 
-    private fun resetMenuColors(item: MenuItem) {
-        sortMenu.forEach{ menuItem ->
+    private fun resetMenuColors(selectedIndex: Int) {
+        sortMenu.forEachIndexed{ index, menuItem ->
             val s = SpannableString(menuItem.title)
-            s.setSpan(ForegroundColorSpan(Color.BLACK), 0, s.length, 0)
+            if (index == selectedIndex)
+                s.setSpan(ForegroundColorSpan(resources.getColor(R.color.star_color)), 0, s.length, 0)
+            else
+                s.setSpan(ForegroundColorSpan(Color.BLACK), 0, s.length, 0)
             menuItem.title = s
         }
-        val s = SpannableString(item.title)
-        s.setSpan(ForegroundColorSpan(resources.getColor(R.color.star_color)), 0, s.length, 0)
-        item.title = s
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when(item.itemId) {
             R.id.action_sort_by_name -> {
                 filmsListViewModel.onSortOrderSelected(SortOrder.BY_NAME)
-                resetMenuColors(item)
                 true
             }
             R.id.action_sort_by_year -> {
                 filmsListViewModel.onSortOrderSelected(SortOrder.BY_YEAR)
-                resetMenuColors(item)
                 true
             }
             R.id.action_sort_by_genre -> {
                 filmsListViewModel.onSortOrderSelected(SortOrder.BY_GENRE)
-                resetMenuColors(item)
                 true
             }
             R.id.action_sort_by_producer -> {
                 filmsListViewModel.onSortOrderSelected(SortOrder.BY_PRODUCER)
-                resetMenuColors(item)
                 true
             }
             else -> super.onOptionsItemSelected(item)
